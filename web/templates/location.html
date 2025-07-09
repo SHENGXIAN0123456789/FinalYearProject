@@ -1,0 +1,783 @@
+{% extends 'base.html' %}
+{% block title %}Location Analysis{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Job Market Analysis by State/Federal Territory</h2>
+    <p class="text-muted">Explore job postings distribution, salary, and trends by state/federal territory in Malaysia.</p>
+    
+    <!-- Date Filter -->
+    <form class="row g-2 mb-4" id="locationDateFilterForm">
+        <div class="col-auto">
+            <label for="startDate" class="form-label">Start Date</label>
+            <input type="date" id="startDate" name="start" class="form-control">
+        </div>
+        <div class="col-auto">
+            <label for="endDate" class="form-label">End Date</label>
+            <input type="date" id="endDate" name="end" class="form-control">
+        </div>        <div class="col-auto">
+            <label for="stateSelect" class="form-label">Select State/Federal Territory</label>
+            <select id="stateSelect" class="form-select">
+                <option value="">All States/Federal Territories</option>
+            </select>
+        </div>
+        <div class="col-auto d-flex align-items-end">
+            <button type="submit" class="btn btn-primary">Apply Filter</button>
+        </div>
+    </form>
+      <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Total Jobs</h5>
+                    <div class="position-relative" style="min-height: 80px;">
+                        <p class="card-text display-4" id="locationTotalJobs" style="display: none;"></p>
+                        <div class="position-absolute top-50 start-50 translate-middle" id="locationTotalJobsLoading">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Median Salary</h5>
+                    <div class="position-relative" style="min-height: 80px;">
+                        <p class="card-text display-4" id="locationAvgSalary" style="display: none;"></p>
+                        <div class="position-absolute top-50 start-50 translate-middle" id="locationAvgSalaryLoading">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Companies</h5>
+                    <div class="position-relative" style="min-height: 80px;">
+                        <p class="card-text display-4" id="locationTotalCompanies" style="display: none;"></p>
+                        <div class="position-absolute top-50 start-50 translate-middle" id="locationTotalCompaniesLoading">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">States/Federal Territories</h5>
+                    <div class="position-relative" style="min-height: 80px;">
+                        <p class="card-text display-4" id="locationTotalStates" style="display: none;"></p>
+                        <div class="position-absolute top-50 start-50 translate-middle" id="locationTotalStatesLoading">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>    <!-- Charts -->
+    <!-- Job Trend Over Time -->
+    <div class="mb-5">
+        <h5>Job Trend Over Time - <span id="selectedStateName">All States/Federal Territories</span></h5>
+        <div class="card">
+            <div class="card-body position-relative">
+                <canvas id="locationTrendChart" style="max-height: 400px;"></canvas>
+                <div class="position-absolute top-50 start-50 translate-middle d-none" id="locationTrendLoading">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading chart...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Job Categories -->
+    <div class="mb-5">
+        <h5>Top Job Categories in <span id="selectedStateForCategories">All States/Federal Territories</span></h5>
+        <div class="card">
+            <div class="card-body position-relative">
+                <canvas id="stateCategoryChart" style="max-height: 350px;"></canvas>
+                <div class="position-absolute top-50 start-50 translate-middle d-none" id="stateCategoryLoading">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading chart...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>    <!-- All Job Categories Table -->
+    <div class="mb-5">
+        <h5>All Job Categories in <span id="selectedStateForCategoriesTable">All States/Federal Territories</span></h5>
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-striped table-hover" id="categoriesTable">
+                        <thead class="table-dark sticky-top">
+                            <tr>
+                                <th>Rank</th>
+                                <th>Job Category</th>
+                                <th>Job Count</th>
+                                <th>Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody id="categoriesTableBody">
+                            <tr>
+                                <td colspan="4" class="text-center">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>    <!-- Jobs Distribution by State -->
+    <div class="mb-5">
+        <h5>Jobs Distribution by State/Federal Territory</h5>
+        <div class="card">
+            <div class="card-body position-relative">
+                <canvas id="jobsByStateChart" style="min-height: 450px; max-height: 500px;"></canvas>
+                <div class="position-absolute top-50 start-50 translate-middle d-none" id="jobsByStateLoading">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading chart...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div><!-- Jobs Distribution by State Table -->
+    <div class="mb-5">
+        <h5>All States/Federal Territories Job Distribution</h5>
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-striped table-hover" id="statesJobTable">
+                        <thead class="table-dark sticky-top">
+                            <tr>
+                                <th>Rank</th>
+                                <th>State/Federal Territory</th>
+                                <th>Job Count</th>
+                                <th>Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody id="statesJobTableBody">
+                            <tr>
+                                <td colspan="4" class="text-center">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>    <!-- Median Salary by State -->
+    <div class="mb-5">
+        <h5>Median Salary by State/Federal Territory</h5>
+        <div class="card">
+            <div class="card-body position-relative">
+                <canvas id="salaryByStateChart" style="min-height: 400px; max-height: 450px;"></canvas>
+                <div class="position-absolute top-50 start-50 translate-middle d-none" id="salaryByStateLoading">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading chart...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Median Salary by State Table -->    <div class="mb-5">
+        <h5>All States/Federal Territories Median Salary</h5>
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-striped table-hover" id="statesSalaryTable">
+                        <thead class="table-dark sticky-top">
+                            <tr>
+                                <th>Rank</th>
+                                <th>State/Federal Territory</th>
+                                <th>Median Salary (RM)</th>
+                                <th>Job Count</th>
+                            </tr>
+                        </thead>
+                        <tbody id="statesSalaryTableBody">
+                            <tr>
+                                <td colspan="4" class="text-center">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>    </div>
+</div>
+
+<!-- Toast Container for error messages -->
+<div class="toast-container position-fixed top-0 end-0 p-3"></div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Global variables
+let jobsByStateChart = null;
+let locationTrendChart = null;
+let salaryByStateChart = null;
+let stateCategoryChart = null;
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    initializeLocationPage();
+});
+
+// Form submission
+document.getElementById('locationDateFilterForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    updateLocationData();
+});
+
+// State selection change
+document.getElementById('stateSelect').addEventListener('change', function() {
+    updateLocationData();
+});
+
+async function initializeLocationPage() {
+    try {
+        await loadDefaultDateRange();
+        await loadStates();
+        await updateLocationData();
+    } catch (error) {
+        console.error('Error initializing location page:', error);
+    }
+}
+
+async function loadDefaultDateRange() {
+    try {
+        const response = await fetch('/api/getDefaultDateRange');
+        if (!response.ok) throw new Error('Failed to fetch default date range');
+        
+        const dateRange = await response.json();
+        const startDateEl = document.getElementById('startDate');
+        const endDateEl = document.getElementById('endDate');
+        
+        if (dateRange.startDate && dateRange.endDate) {
+            startDateEl.min = dateRange.startDate;
+            startDateEl.max = dateRange.endDate;
+            startDateEl.value = dateRange.startDate;
+            
+            endDateEl.min = dateRange.startDate;
+            endDateEl.max = dateRange.endDate;
+            endDateEl.value = dateRange.endDate;
+        }
+    } catch (error) {
+        console.error('Error loading default date range:', error);
+    }
+}
+
+async function loadStates() {
+    try {
+        const response = await fetch('/api/getStates');
+        if (!response.ok) throw new Error('Failed to fetch states');
+        
+        const data = await response.json();
+        const stateSelect = document.getElementById('stateSelect');
+          // Clear existing options except "All States/Federal Territories"
+        stateSelect.innerHTML = '<option value="">All States/Federal Territories</option>';
+        
+        // Add state options
+        data.states.forEach(state => {
+            const option = document.createElement('option');
+            option.value = state;
+            option.textContent = state;
+            stateSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading states:', error);
+    }
+}
+
+async function updateLocationData() {
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+    const selectedState = document.getElementById('stateSelect').value;
+      // Update display names
+    document.getElementById('selectedStateName').textContent = selectedState || 'All States/Federal Territories';
+    document.getElementById('selectedStateForCategories').textContent = selectedState || 'All States/Federal Territories';
+    document.getElementById('selectedStateForCategoriesTable').textContent = selectedState || 'All States/Federal Territories';
+    
+    // Build query parameters
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    if (selectedState) params.append('state', selectedState);
+    
+    try {        await Promise.all([
+            loadLocationStats(params),
+            loadLocationTrend(params),
+            loadStateCategoryData(params),
+            loadJobsByState(params),
+            loadSalaryByState(params)
+        ]);
+    } catch (error) {
+        console.error('Error updating location data:', error);
+    }
+}
+
+async function loadLocationStats(params) {
+    try {
+        const response = await fetch(`/api/getLocationStats?${params}`);
+        if (!response.ok) throw new Error('Failed to fetch location stats');
+        
+        const stats = await response.json();
+        
+        // Show data and hide loading spinners
+        document.getElementById('locationTotalJobs').textContent = stats.totalJobs.toLocaleString();
+        document.getElementById('locationTotalJobs').style.display = 'block';
+        document.getElementById('locationTotalJobsLoading').style.display = 'none';
+        
+        document.getElementById('locationAvgSalary').textContent = stats.avgSalary ? 'RM ' + Math.round(stats.avgSalary).toLocaleString() : '--';
+        document.getElementById('locationAvgSalary').style.display = 'block';
+        document.getElementById('locationAvgSalaryLoading').style.display = 'none';
+        
+        document.getElementById('locationTotalCompanies').textContent = stats.totalCompanies.toLocaleString();
+        document.getElementById('locationTotalCompanies').style.display = 'block';
+        document.getElementById('locationTotalCompaniesLoading').style.display = 'none';
+        
+        document.getElementById('locationTotalStates').textContent = stats.totalStates.toLocaleString();
+        document.getElementById('locationTotalStates').style.display = 'block';
+        document.getElementById('locationTotalStatesLoading').style.display = 'none';
+    } catch (error) {
+        console.error('Error loading location stats:', error);
+        // Show error placeholder and hide loading spinners
+        document.getElementById('locationTotalJobs').innerHTML = '<span class="text-muted">--</span>';
+        document.getElementById('locationTotalJobs').style.display = 'block';
+        document.getElementById('locationTotalJobsLoading').style.display = 'none';
+        
+        document.getElementById('locationAvgSalary').innerHTML = '<span class="text-muted">--</span>';
+        document.getElementById('locationAvgSalary').style.display = 'block';
+        document.getElementById('locationAvgSalaryLoading').style.display = 'none';
+        
+        document.getElementById('locationTotalCompanies').innerHTML = '<span class="text-muted">--</span>';
+        document.getElementById('locationTotalCompanies').style.display = 'block';
+        document.getElementById('locationTotalCompaniesLoading').style.display = 'none';
+        
+        document.getElementById('locationTotalStates').innerHTML = '<span class="text-muted">--</span>';
+        document.getElementById('locationTotalStates').style.display = 'block';
+        document.getElementById('locationTotalStatesLoading').style.display = 'none';
+    }
+}
+
+async function loadJobsByState(params) {
+    const loadingEl = document.getElementById('jobsByStateLoading');
+    try {
+        // Show loading spinner
+        loadingEl?.classList.remove('d-none');
+        
+        // Create a fresh copy of params to avoid conflicts with other API calls
+        const freshParams = new URLSearchParams(params);
+        freshParams.append('limit', '20');
+        
+        const response = await fetch(`/api/getJobsByState?${freshParams}`);
+        if (!response.ok) throw new Error('Failed to fetch jobs by state');
+        
+        const data = await response.json();
+        
+        // The backend already returns data sorted by job count (descending)
+        // No need to sort again in frontend
+        if (jobsByStateChart) {
+            jobsByStateChart.destroy();
+        }
+          const ctx = document.getElementById('jobsByStateChart').getContext('2d');
+        jobsByStateChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.states,
+                datasets: [{
+                    label: 'Job Count',
+                    data: data.counts,
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1,
+                    minBarLength: 5, // Minimum bar height in pixels
+                    barThickness: 'flex', // Flexible bar thickness
+                    maxBarThickness: 50 // Maximum bar thickness
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        top: 20,
+                        bottom: 10
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        suggestedMin: 0,
+                        ticks: {
+                            stepSize: Math.max(1, Math.ceil(Math.max(...data.counts) / 10))
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: ${context.parsed.y.toLocaleString()} jobs`;
+                            }
+                        }
+                    },
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                }
+            }
+        });
+        
+        // Update states job table
+        updateStatesJobTable(data);
+    } catch (error) {
+        console.error('Error loading jobs by state:', error);
+        showError('Failed to load jobs by state chart');
+    } finally {
+        // Hide loading spinner
+        loadingEl?.classList.add('d-none');
+    }
+}
+
+async function loadLocationTrend(params) {
+    const loadingEl = document.getElementById('locationTrendLoading');
+    try {
+        // Show loading spinner
+        loadingEl?.classList.remove('d-none');
+        
+        const response = await fetch(`/api/getLocationTrend?${params}`);
+        if (!response.ok) throw new Error('Failed to fetch location trend');
+        
+        const data = await response.json();
+        
+        if (locationTrendChart) {
+            locationTrendChart.destroy();
+        }
+        
+        const ctx = document.getElementById('locationTrendChart').getContext('2d');
+        locationTrendChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.dates,
+                datasets: [{
+                    label: 'Job Postings',
+                    data: data.counts,
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error loading location trend:', error);
+        showError('Failed to load location trend chart');
+    } finally {
+        // Hide loading spinner
+        loadingEl?.classList.add('d-none');
+    }
+}
+
+async function loadSalaryByState(params) {
+    const loadingEl = document.getElementById('salaryByStateLoading');
+    try {
+        // Show loading spinner
+        loadingEl?.classList.remove('d-none');
+        
+        // Create a fresh copy of params to avoid conflicts with other API calls
+        const freshParams = new URLSearchParams(params);
+        freshParams.append('limit', '20');
+        
+        const response = await fetch(`/api/getSalaryByState?${freshParams}`);
+        if (!response.ok) throw new Error('Failed to fetch salary by state');
+          const data = await response.json();
+        
+        // Sort data by salary (descending) to match table ranking
+        const sortedData = data.states.map((state, index) => ({
+            state: state,
+            salary: data.salaries[index],
+            jobCount: data.jobCounts ? data.jobCounts[index] : 0
+        })).sort((a, b) => b.salary - a.salary);
+        
+        if (salaryByStateChart) {
+            salaryByStateChart.destroy();
+        }
+          const ctx = document.getElementById('salaryByStateChart').getContext('2d');
+        salaryByStateChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: sortedData.map(item => item.state),
+                datasets: [{
+                    label: 'Median Salary (RM)',
+                    data: sortedData.map(item => item.salary),
+                    backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1,
+                    minBarLength: 5, // Minimum bar height in pixels
+                    barThickness: 'flex', // Flexible bar thickness
+                    maxBarThickness: 50 // Maximum bar thickness
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        top: 20,
+                        bottom: 10
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        suggestedMin: 0,
+                        ticks: {
+                            stepSize: Math.max(100, Math.ceil(Math.max(...sortedData.map(item => item.salary)) / 10)),
+                            callback: function(value) {
+                                return 'RM ' + value.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: RM ${context.parsed.y.toLocaleString()}`;
+                            }
+                        }
+                    },
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                }
+            }
+        });
+        
+        // Update states salary table
+        updateStatesSalaryTable(data);
+    } catch (error) {
+        console.error('Error loading salary by state:', error);
+        showError('Failed to load salary by state chart');
+    } finally {
+        // Hide loading spinner
+        loadingEl?.classList.add('d-none');
+    }
+}
+
+async function loadStateCategoryData(params) {
+    const loadingEl = document.getElementById('stateCategoryLoading');
+    try {
+        // Show loading spinner
+        loadingEl?.classList.remove('d-none');
+          // Create separate params for chart (top 6) and table (all categories)
+        const chartParams = new URLSearchParams(params);
+        chartParams.append('limit', '6'); // Show top 6 in chart for better visibility
+        
+        const tableParams = new URLSearchParams(params);
+        tableParams.append('limit', '30'); // Show all categories in table (30 to be safe)
+        
+        // Fetch data for chart (top categories)
+        const chartResponse = await fetch(`/api/getStateCategoryData?${chartParams}`);
+        if (!chartResponse.ok) throw new Error('Failed to fetch state category data');
+        
+        const chartData = await chartResponse.json();
+        
+        // Fetch data for table (all categories)
+        const tableResponse = await fetch(`/api/getStateCategoryData?${tableParams}`);
+        const tableData = await tableResponse.json();
+        
+        // Update chart
+        if (stateCategoryChart) {
+            stateCategoryChart.destroy();
+        }
+          const ctx = document.getElementById('stateCategoryChart').getContext('2d');
+        stateCategoryChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: chartData.categories,
+                datasets: [{
+                    data: chartData.counts,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.6)',
+                        'rgba(54, 162, 235, 0.6)',
+                        'rgba(255, 205, 86, 0.6)',
+                        'rgba(75, 192, 192, 0.6)',
+                        'rgba(153, 102, 255, 0.6)',
+                        'rgba(255, 159, 64, 0.6)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });        
+        // Update table with all categories
+        updateCategoriesTable(tableData);
+    } catch (error) {
+        console.error('Error loading state category data:', error);
+        showError('Failed to load state category data');
+    } finally {
+        // Hide loading spinner
+        loadingEl?.classList.add('d-none');
+    }
+}
+
+// Table update functions
+function updateCategoriesTable(data) {
+    const tableBody = document.getElementById('categoriesTableBody');
+    if (!data.categories || data.categories.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No data available</td></tr>';
+        return;
+    }
+    
+    const total = data.counts.reduce((sum, count) => sum + count, 0);
+    tableBody.innerHTML = data.categories.map((category, index) => {
+        const count = data.counts[index];
+        const percentage = ((count / total) * 100).toFixed(2);
+        return `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${category}</td>
+                <td>${count.toLocaleString()}</td>
+                <td>${percentage}%</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function updateStatesJobTable(data) {
+    const tableBody = document.getElementById('statesJobTableBody');
+    if (!data.states || data.states.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No data available</td></tr>';
+        return;
+    }
+    
+    const total = data.counts.reduce((sum, count) => sum + count, 0);
+    
+    // Create array of state data and sort by job count (descending)
+    const stateData = data.states.map((state, index) => ({
+        state: state,
+        count: data.counts[index]
+    })).sort((a, b) => b.count - a.count);
+    
+    tableBody.innerHTML = stateData.map((item, index) => {
+        const percentage = ((item.count / total) * 100).toFixed(2);
+        return `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${item.state}</td>
+                <td>${item.count.toLocaleString()}</td>
+                <td>${percentage}%</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function updateStatesSalaryTable(data) {
+    const tableBody = document.getElementById('statesSalaryTableBody');
+    if (!data.states || data.states.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No data available</td></tr>';
+        return;
+    }
+    
+    // Create array of state data and sort by salary (descending)
+    const stateData = data.states.map((state, index) => ({
+        state: state,
+        salary: data.salaries[index],
+        jobCount: data.jobCounts ? data.jobCounts[index] : 'N/A'
+    })).sort((a, b) => b.salary - a.salary);
+    
+    tableBody.innerHTML = stateData.map((item, index) => {
+        return `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${item.state}</td>
+                <td>RM ${Math.round(item.salary).toLocaleString()}</td>
+                <td>${typeof item.jobCount === 'number' ? item.jobCount.toLocaleString() : item.jobCount}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// Error handling function
+function showError(message) {
+    const toastContainer = document.querySelector('.toast-container');
+    if (!toastContainer) return;
+
+    const toastId = 'toast-' + Date.now();
+    const toastHtml = `
+        <div class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true" id="${toastId}">
+            <div class="d-flex">
+                <div class="toast-body">
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    `;
+    
+    toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+    
+    const toast = new bootstrap.Toast(document.getElementById(toastId), {
+        autohide: true,
+        delay: 5000
+    });
+    
+    toast.show();
+    
+    // Remove toast element after it's hidden
+    document.getElementById(toastId).addEventListener('hidden.bs.toast', function() {
+        this.remove();
+    });
+}
+</script>
+{% endblock %}

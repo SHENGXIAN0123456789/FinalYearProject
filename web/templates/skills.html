@@ -1,0 +1,1712 @@
+{% extends 'base.html' %}
+{% block title %}Skills Analysis{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Skills Analysis Dashboard</h2>
+    <p class="text-muted">Comprehensive analysis of language skills, soft skills, hard skills, and certifications demand in Malaysia's job market.</p>
+    
+    <!-- Date Filter -->
+    <form class="row g-2 mb-4" id="skillsDateFilterForm">
+        <div class="col-auto">
+            <label for="startDate" class="form-label">Start Date</label>
+            <input type="date" class="form-control" id="startDate" name="startDate">
+        </div>
+        <div class="col-auto">
+            <label for="endDate" class="form-label">End Date</label>
+            <input type="date" class="form-control" id="endDate" name="endDate">
+        </div>
+        <div class="col-auto d-flex align-items-end">
+            <button type="submit" class="btn btn-primary">Apply Filter</button>
+        </div>
+    </form>
+
+    <!-- Skill Type Tabs -->
+    <ul class="nav nav-tabs mb-4" id="skillTypeTabs">
+        <li class="nav-item">
+            <a class="nav-link active" id="languages-tab" data-bs-toggle="tab" href="#languages" role="tab">Languages</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="soft-skills-tab" data-bs-toggle="tab" href="#soft-skills" role="tab">Soft Skills</a>
+        </li>        <li class="nav-item">
+            <a class="nav-link" id="hard-skills-tab" data-bs-toggle="tab" href="#hard-skills" role="tab">Hard Skills</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="certifications-tab" data-bs-toggle="tab" href="#certifications" role="tab">Certifications</a>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="skillTypeTabContent">
+        
+        <!-- Languages Tab -->
+        <div class="tab-pane fade show active" id="languages" role="tabpanel">
+            <!-- Language Selection -->
+            <div class="row mb-4">
+                <div class="col-4">
+                    <label for="languageSelect" class="form-label">Select Language</label>
+                    <select class="form-select" id="languageSelect">
+                        <option value="">All Languages</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Language Trend Chart -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h5>Language Demand Trend Over Time</h5>
+                    <div class="card">
+                        <div class="card-body">
+                            <div id="languageTrendLoading" class="text-center d-none">
+                                <div class="spinner-border" role="status"></div>
+                            </div>
+                            <canvas id="languageTrendChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Languages Chart -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h5>Top 5 Languages Required</h5>
+                    <div class="card">
+                        <div class="card-body">
+                            <div id="topLanguagesLoading" class="text-center d-none">
+                                <div class="spinner-border" role="status"></div>
+                            </div>
+                            <canvas id="topLanguagesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- All Languages Table -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h5>All Languages with Job Counts</h5>
+                    <div class="card">
+                        <div class="card-body">
+                            <div style="max-height: 400px; overflow-y: auto;">
+                                <table class="table table-striped">
+                                    <thead class="sticky-top bg-light">
+                                        <tr>
+                                            <th>Language</th>
+                                            <th>Job Count</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="allLanguagesTable">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Soft Skills Tab -->
+        <div class="tab-pane fade" id="soft-skills" role="tabpanel">
+            <!-- Soft Skill Selection -->
+            <div class="row mb-4">
+                <div class="col-4">
+                    <label for="softSkillSelect" class="form-label">Select Soft Skill</label>
+                    <select class="form-select" id="softSkillSelect">
+                        <option value="">All Soft Skills</option>
+                    </select>
+                </div>
+                <div class="col-4">
+                    <label for="softSkillCategorySelect" class="form-label">Filter by Category</label>
+                    <select class="form-select" id="softSkillCategorySelect">
+                        <option value="">All Categories</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Soft Skills Trend Chart -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h5>Soft Skills Demand Trend Over Time</h5>
+                    <div class="card">
+                        <div class="card-body">
+                            <div id="softSkillTrendLoading" class="text-center d-none">
+                                <div class="spinner-border" role="status"></div>
+                            </div>
+                            <canvas id="softSkillTrendChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>            <!-- Top Soft Skills Chart -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h5>Top 10 Soft Skills Required</h5>
+                    <div class="card">
+                        <div class="card-body">
+                            <div id="topSoftSkillsLoading" class="text-center d-none">
+                                <div class="spinner-border" role="status"></div>
+                            </div>
+                            <canvas id="topSoftSkillsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- All Soft Skills Table -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h5>All Soft Skills with Job Counts</h5>
+                    <div class="card">
+                        <div class="card-body">
+                            <div style="max-height: 400px; overflow-y: auto;">
+                                <table class="table table-striped">
+                                    <thead class="sticky-top bg-light">
+                                        <tr>
+                                            <th>Soft Skill</th>
+                                            <th>Job Count</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="allSoftSkillsTable">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Soft Skills by Category Chart -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h5>Soft Skills by Category</h5>
+                    <div class="card">
+                        <div class="card-body">
+                            <div id="softSkillsByCategoryLoading" class="text-center d-none">
+                                <div class="spinner-border" role="status"></div>
+                            </div>
+                            <canvas id="softSkillsByCategoryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Soft Skills by Category Table -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h5>Soft Skills by Selected Category (Top 50)</h5>
+                    <div class="card">
+                        <div class="card-body">
+                            <div style="max-height: 400px; overflow-y: auto;">
+                                <table class="table table-striped">
+                                    <thead class="sticky-top bg-light">
+                                        <tr>
+                                            <th>Soft Skill</th>
+                                            <th>Job Count</th>
+                                            <th>Category</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="softSkillsByCategoryTable">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hard Skills Tab -->
+        <div class="tab-pane fade" id="hard-skills" role="tabpanel">
+            <!-- Hard Skill Selection -->
+            <div class="row mb-4">
+                <div class="col-4">
+                    <label for="hardSkillSelect" class="form-label">Select Hard Skill</label>
+                    <select class="form-select" id="hardSkillSelect">
+                        <option value="">All Hard Skills</option>
+                    </select>
+                </div>
+                <div class="col-4">
+                    <label for="hardSkillCategorySelect" class="form-label">Filter by Category</label>
+                    <select class="form-select" id="hardSkillCategorySelect">
+                        <option value="">All Categories</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Hard Skills Trend Chart -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h5>Hard Skills Demand Trend Over Time</h5>
+                    <div class="card">
+                        <div class="card-body">
+                            <div id="hardSkillTrendLoading" class="text-center d-none">
+                                <div class="spinner-border" role="status"></div>
+                            </div>
+                            <canvas id="hardSkillTrendChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Hard Skills Chart -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h5>Top 10 Hard Skills Required</h5>
+                    <div class="card">
+                        <div class="card-body">
+                            <div id="topHardSkillsLoading" class="text-center d-none">
+                                <div class="spinner-border" role="status"></div>
+                            </div>
+                            <canvas id="topHardSkillsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>            <!-- All Hard Skills Table -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h5>All Hard Skills with Job Counts</h5>
+                    <div class="card">
+                        <div class="card-body">
+                            <div style="max-height: 400px; overflow-y: auto;">
+                                <table class="table table-striped">
+                                    <thead class="sticky-top bg-light">
+                                        <tr>
+                                            <th>Hard Skill</th>
+                                            <th>Job Count</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="allHardSkillsTable">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hard Skills by Category Chart -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h5>Hard Skills by Category</h5>
+                    <div class="card">
+                        <div class="card-body">
+                            <div id="hardSkillsByCategoryLoading" class="text-center d-none">
+                                <div class="spinner-border" role="status"></div>
+                            </div>
+                            <canvas id="hardSkillsByCategoryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hard Skills by Category Table -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h5>Hard Skills by Selected Category (Top 50)</h5>
+                    <div class="card">
+                        <div class="card-body">
+                            <div style="max-height: 400px; overflow-y: auto;">
+                                <table class="table table-striped">
+                                    <thead class="sticky-top bg-light">
+                                        <tr>
+                                            <th>Hard Skill</th>
+                                            <th>Job Count</th>
+                                            <th>Category</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="hardSkillsByCategoryTable">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>            </div>
+        </div>
+
+        <!-- Certifications Tab -->
+        <div class="tab-pane fade" id="certifications" role="tabpanel">
+            <!-- Certification Selection -->
+            <div class="row mb-4">
+                <div class="col-4">
+                    <label for="certificationSelect" class="form-label">Select Certification</label>
+                    <select class="form-select" id="certificationSelect">
+                        <option value="">All Certifications</option>
+                    </select>
+                </div>
+                <div class="col-4">
+                    <label for="certificationCategorySelect" class="form-label">Filter by Category</label>
+                    <select class="form-select" id="certificationCategorySelect">
+                        <option value="">All Categories</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Certification Trend Chart -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h5>Certification Demand Trend Over Time</h5>
+                    <div class="card">
+                        <div class="card-body">
+                            <div id="certificationTrendLoading" class="text-center d-none">
+                                <div class="spinner-border" role="status"></div>
+                            </div>
+                            <canvas id="certificationTrendChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Certifications Chart -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h5>Top 10 Certifications Required</h5>                    <div class="card">
+                        <div class="card-body">
+                            <div id="topCertificationsLoading" class="text-center d-none">
+                                <div class="spinner-border" role="status"></div>
+                            </div>
+                            <div style="height: 450px;">
+                                <canvas id="topCertificationsChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- All Certifications Table -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h5>All Certifications with Job Counts</h5>
+                    <div class="card">
+                        <div class="card-body">
+                            <div style="max-height: 400px; overflow-y: auto;">
+                                <table class="table table-striped">
+                                    <thead class="sticky-top bg-light">
+                                        <tr>
+                                            <th>Certification</th>
+                                            <th>Job Count</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="allCertificationsTable">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Certifications by Category Chart -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h5>Certifications by Category</h5>                    <div class="card">
+                        <div class="card-body">
+                            <div id="certificationsByCategoryLoading" class="text-center d-none">
+                                <div class="spinner-border" role="status"></div>
+                            </div>
+                            <div style="height: 450px;">
+                                <canvas id="certificationsByCategoryChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Certifications by Selected Category Table -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h5>Certifications by Selected Category (Top 50)</h5>
+                    <div class="card">
+                        <div class="card-body">
+                            <div style="max-height: 400px; overflow-y: auto;">
+                                <table class="table table-striped">
+                                    <thead class="sticky-top bg-light">
+                                        <tr>
+                                            <th>Certification</th>
+                                            <th>Job Count</th>
+                                            <th>Category</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="certificationsByCategoryTable">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Chart variables
+let languageTrendChart = null;
+let topLanguagesChart = null;
+let softSkillTrendChart = null;
+let topSoftSkillsChart = null;
+let softSkillsByCategoryChart = null;
+let hardSkillTrendChart = null;
+let topHardSkillsChart = null;
+let hardSkillsByCategoryChart = null;
+let certificationTrendChart = null;
+let topCertificationsChart = null;
+let certificationsByCategoryChart = null;
+
+// Current active tab
+let activeTab = 'languages';
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    initializeSkillsPage();
+    
+    // Tab change events
+    document.getElementById('languages-tab').addEventListener('click', function() {
+        activeTab = 'languages';
+        setTimeout(() => loadLanguagesData(), 100);
+    });
+    
+    document.getElementById('soft-skills-tab').addEventListener('click', function() {
+        activeTab = 'soft-skills';
+        setTimeout(() => loadSoftSkillsData(), 100);
+    });
+      document.getElementById('hard-skills-tab').addEventListener('click', function() {
+        activeTab = 'hard-skills';
+        setTimeout(() => loadHardSkillsData(), 100);
+    });
+    
+    document.getElementById('certifications-tab').addEventListener('click', function() {
+        activeTab = 'certifications';
+        setTimeout(() => loadCertificationsData(), 100);
+    });
+});
+
+// Form submission
+document.getElementById('skillsDateFilterForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (activeTab === 'languages') {        loadLanguagesData();
+    } else if (activeTab === 'soft-skills') {
+        loadSoftSkillsData();
+    } else if (activeTab === 'hard-skills') {
+        loadHardSkillsData();
+    } else if (activeTab === 'certifications') {
+        loadCertificationsData();
+    }
+});
+
+// Category selection changes
+document.addEventListener('change', function(e) {
+    if (e.target.id === 'softSkillCategorySelect') {
+        loadSoftSkillsByCategory();
+    } else if (e.target.id === 'hardSkillCategorySelect') {
+        loadHardSkillsByCategory();
+    } else if (e.target.id === 'certificationCategorySelect') {
+        loadCertificationsByCategory();
+    } else if (e.target.id === 'languageSelect') {
+        const params = getDateParams();
+        loadLanguageTrend(params);
+    } else if (e.target.id === 'softSkillSelect') {
+        const params = getDateParams();
+        loadSoftSkillTrend(params);
+    } else if (e.target.id === 'hardSkillSelect') {
+        const params = getDateParams();
+        loadHardSkillTrend(params);
+    } else if (e.target.id === 'certificationSelect') {
+        const params = getDateParams();
+        loadCertificationTrend(params);
+    }
+});
+
+async function initializeSkillsPage() {
+    try {
+        await loadDefaultDateRange();
+        await loadCategories();
+        await loadLanguagesData(); // Load default tab
+    } catch (error) {
+        console.error('Error initializing skills page:', error);
+    }
+}
+
+async function loadDefaultDateRange() {
+    try {
+        const response = await fetch('/api/getDefaultDateRange');
+        if (!response.ok) throw new Error('Failed to fetch default date range');
+        
+        const dateRange = await response.json();
+        const startDateEl = document.getElementById('startDate');
+        const endDateEl = document.getElementById('endDate');
+        
+        if (dateRange.startDate && dateRange.endDate) {
+            startDateEl.min = dateRange.startDate;
+            startDateEl.max = dateRange.endDate;
+            startDateEl.value = dateRange.startDate;
+            
+            endDateEl.min = dateRange.startDate;
+            endDateEl.max = dateRange.endDate;
+            endDateEl.value = dateRange.endDate;
+        }
+    } catch (error) {
+        console.error('Error loading default date range:', error);
+    }
+}
+
+async function loadCategories() {
+    try {
+        const response = await fetch('/api/getCategories');
+        if (!response.ok) throw new Error('Failed to fetch categories');
+        
+        const data = await response.json();
+        
+        // Populate category selects
+        const softCategorySelect = document.getElementById('softSkillCategorySelect');
+        const hardCategorySelect = document.getElementById('hardSkillCategorySelect');
+        const certificationCategorySelect = document.getElementById('certificationCategorySelect');
+        
+        data.categories.forEach(category => {
+            const softOption = document.createElement('option');
+            softOption.value = category.id;
+            softOption.textContent = category.name;
+            softCategorySelect.appendChild(softOption);
+            
+            const hardOption = document.createElement('option');
+            hardOption.value = category.id;
+            hardOption.textContent = category.name;
+            hardCategorySelect.appendChild(hardOption);
+            
+            const certificationOption = document.createElement('option');
+            certificationOption.value = category.id;
+            certificationOption.textContent = category.name;
+            certificationCategorySelect.appendChild(certificationOption);
+        });
+    } catch (error) {
+        console.error('Error loading categories:', error);
+    }
+}
+
+// Helper functions
+function getDateParams() {
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    return params;
+}
+
+function showChartLoading(chartId) {
+    const loadingEl = document.getElementById(chartId + 'Loading');
+    if (loadingEl) loadingEl.classList.remove('d-none');
+}
+
+function hideChartLoading(chartId) {
+    const loadingEl = document.getElementById(chartId + 'Loading');
+    if (loadingEl) loadingEl.classList.add('d-none');
+}
+
+// Dynamic chart sizing based on label length
+function calculateChartHeight(labels, baseHeight = 400) {
+    if (!labels || labels.length === 0) return baseHeight;
+    
+    // Calculate average label length
+    const avgLabelLength = labels.reduce((sum, label) => sum + (label?.toString().length || 0), 0) / labels.length;
+    
+    // Determine height based on label length and count
+    let dynamicHeight = baseHeight;
+    
+    // Increase height for longer labels
+    if (avgLabelLength > 15) {
+        dynamicHeight += 100;
+    } else if (avgLabelLength > 10) {
+        dynamicHeight += 50;
+    }
+    
+    // Increase height for more items
+    if (labels.length > 8) {
+        dynamicHeight += 50;
+    }
+    
+    return Math.max(dynamicHeight, 350); // Minimum height
+}
+
+// Dynamic font size based on chart container and label length
+function calculateFontSize(labels, containerWidth = 800) {
+    if (!labels || labels.length === 0) return 12;
+    
+    const avgLabelLength = labels.reduce((sum, label) => sum + (label?.toString().length || 0), 0) / labels.length;
+    
+    // Base font size calculation
+    let fontSize = 12;
+    
+    // Adjust for container width
+    if (containerWidth > 1000) fontSize = 14;
+    else if (containerWidth < 600) fontSize = 10;
+    
+    // Adjust for label length
+    if (avgLabelLength > 20) fontSize = Math.max(fontSize - 2, 9);
+    else if (avgLabelLength < 8) fontSize = Math.min(fontSize + 1, 14);
+    
+    return fontSize;
+}
+
+// Set dynamic chart container height
+function setChartContainerHeight(chartId, height) {
+    const canvas = document.getElementById(chartId);
+    if (canvas && canvas.parentElement) {
+        canvas.parentElement.style.height = height + 'px';
+    }
+}
+
+// LANGUAGES TAB FUNCTIONS
+async function loadLanguagesData() {
+    const params = getDateParams();
+    
+    showChartLoading('languageTrend');
+    showChartLoading('topLanguages');
+    
+    try {
+        await Promise.all([
+            loadLanguageTrend(params),
+            loadTopLanguages(params),
+            loadAllLanguages(params),
+            loadLanguageDropdown(params)
+        ]);
+    } catch (error) {
+        console.error('Error loading languages data:', error);
+    }
+}
+
+async function loadLanguageTrend(params) {
+    try {
+        const language = document.getElementById('languageSelect')?.value;
+        if (language) params.append('skill', language);
+        
+        const response = await fetch(`/api/getLanguageTrend?${params}`);
+        if (!response.ok) throw new Error('Failed to fetch language trend');
+        
+        const data = await response.json();
+        
+        if (languageTrendChart) {
+            languageTrendChart.destroy();
+        }
+        
+        const ctx = document.getElementById('languageTrendChart').getContext('2d');
+        languageTrendChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.dates,
+                datasets: [{
+                    label: 'Jobs Posted',
+                    data: data.counts,
+                    borderColor: 'rgb(54, 162, 235)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        
+        hideChartLoading('languageTrend');
+    } catch (error) {
+        console.error('Error loading language trend:', error);
+        hideChartLoading('languageTrend');
+    }
+}
+
+async function loadTopLanguages(params) {
+    try {
+        const response = await fetch(`/api/getTopLanguages?${params}`);
+        if (!response.ok) throw new Error('Failed to fetch top languages');
+        
+        const data = await response.json();
+        
+        if (topLanguagesChart) {
+            topLanguagesChart.destroy();
+        }
+          const ctx = document.getElementById('topLanguagesChart').getContext('2d');
+        
+        // Calculate dynamic sizing
+        const chartHeight = calculateChartHeight(data.languages, 400);
+        const fontSize = calculateFontSize(data.languages, ctx.canvas.clientWidth);
+        setChartContainerHeight('topLanguagesChart', chartHeight);
+        
+        topLanguagesChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.languages,
+                datasets: [{
+                    label: 'Job Count',
+                    data: data.counts,
+                    backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        bottom: 30,
+                        left: 10,
+                        right: 10
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            font: {
+                                size: fontSize
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            maxRotation: 35,
+                            minRotation: 35,
+                            font: {
+                                size: fontSize
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: {
+                            font: {
+                                size: fontSize
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        hideChartLoading('topLanguages');
+    } catch (error) {
+        console.error('Error loading top languages:', error);
+        hideChartLoading('topLanguages');
+    }
+}
+
+async function loadAllLanguages(params) {
+    try {
+        const response = await fetch(`/api/getAllLanguages?${params}`);
+        if (!response.ok) throw new Error('Failed to fetch all languages');
+        
+        const data = await response.json();
+        const tableBody = document.getElementById('allLanguagesTable');
+        
+        tableBody.innerHTML = data.languages.map((lang, index) => `
+            <tr>
+                <td>${lang}</td>
+                <td>${data.counts[index].toLocaleString()}</td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading all languages:', error);
+    }
+}
+
+async function loadLanguageDropdown(params) {
+    try {
+        const response = await fetch(`/api/getAllLanguages?${params}`);
+        if (!response.ok) throw new Error('Failed to fetch languages for dropdown');
+        
+        const data = await response.json();
+        const languageSelect = document.getElementById('languageSelect');
+        
+        languageSelect.innerHTML = '<option value="">All Languages</option>';
+        data.languages.forEach(language => {
+            const option = document.createElement('option');
+            option.value = language;
+            option.textContent = language;
+            languageSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading language dropdown:', error);
+    }
+}
+
+// SOFT SKILLS TAB FUNCTIONS
+async function loadSoftSkillsData() {
+    const params = getDateParams();
+    
+    showChartLoading('softSkillTrend');
+    showChartLoading('topSoftSkills');
+    showChartLoading('softSkillsByCategory');
+    
+    try {
+        await Promise.all([
+            loadSoftSkillTrend(params),
+            loadTopSoftSkills(params),
+            loadAllSoftSkills(params),
+            loadSoftSkillDropdown(params),
+            loadSoftSkillsByCategory()
+        ]);
+    } catch (error) {
+        console.error('Error loading soft skills data:', error);
+    }
+}
+
+async function loadSoftSkillTrend(params) {
+    try {
+        const skill = document.getElementById('softSkillSelect')?.value;
+        if (skill) params.append('skill', skill);
+        
+        const response = await fetch(`/api/getSoftSkillTrend?${params}`);
+        if (!response.ok) throw new Error('Failed to fetch soft skill trend');
+        
+        const data = await response.json();
+        
+        if (softSkillTrendChart) {
+            softSkillTrendChart.destroy();
+        }
+        
+        const ctx = document.getElementById('softSkillTrendChart').getContext('2d');
+        softSkillTrendChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.dates,
+                datasets: [{
+                    label: 'Jobs Posted',
+                    data: data.counts,
+                    borderColor: 'rgb(153, 102, 255)',
+                    backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        
+        hideChartLoading('softSkillTrend');
+    } catch (error) {
+        console.error('Error loading soft skill trend:', error);
+        hideChartLoading('softSkillTrend');
+    }
+}
+
+async function loadTopSoftSkills(params) {
+    try {
+        const response = await fetch(`/api/getTopSoftSkills?${params}`);
+        if (!response.ok) throw new Error('Failed to fetch top soft skills');
+        
+        const data = await response.json();
+        
+        if (topSoftSkillsChart) {
+            topSoftSkillsChart.destroy();
+        }
+          const ctx = document.getElementById('topSoftSkillsChart').getContext('2d');
+        
+        // Calculate dynamic sizing
+        const chartHeight = calculateChartHeight(data.skills, 400);
+        const fontSize = calculateFontSize(data.skills, ctx.canvas.clientWidth);
+        setChartContainerHeight('topSoftSkillsChart', chartHeight);
+        
+        topSoftSkillsChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.skills,
+                datasets: [{
+                    label: 'Job Count',
+                    data: data.counts,
+                    backgroundColor: 'rgba(153, 102, 255, 0.6)',
+                    borderColor: 'rgba(153, 102, 255, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        bottom: 30,
+                        left: 10,
+                        right: 10
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            font: {
+                                size: fontSize
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            maxRotation: 35,
+                            minRotation: 35,
+                            font: {
+                                size: fontSize
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: {
+                            font: {
+                                size: fontSize
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        hideChartLoading('topSoftSkills');
+    } catch (error) {
+        console.error('Error loading top soft skills:', error);
+        hideChartLoading('topSoftSkills');
+    }
+}
+
+async function loadAllSoftSkills(params) {
+    try {
+        const response = await fetch(`/api/getAllSoftSkills?${params}`);
+        if (!response.ok) throw new Error('Failed to fetch all soft skills');
+        
+        const data = await response.json();
+        const tableBody = document.getElementById('allSoftSkillsTable');
+        
+        tableBody.innerHTML = data.skills.map((skill, index) => `
+            <tr>
+                <td>${skill}</td>
+                <td>${data.counts[index].toLocaleString()}</td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading all soft skills:', error);
+    }
+}
+
+async function loadSoftSkillDropdown(params) {
+    try {
+        const response = await fetch(`/api/getAllSoftSkills?${params}`);
+        if (!response.ok) throw new Error('Failed to fetch soft skills for dropdown');
+        
+        const data = await response.json();
+        const softSkillSelect = document.getElementById('softSkillSelect');
+        
+        softSkillSelect.innerHTML = '<option value="">All Soft Skills</option>';
+        data.skills.forEach(skill => {
+            const option = document.createElement('option');
+            option.value = skill;
+            option.textContent = skill;
+            softSkillSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading soft skill dropdown:', error);
+    }
+}
+
+async function loadSoftSkillsByCategory() {
+    const params = getDateParams();
+    const category = document.getElementById('softSkillCategorySelect').value;
+    if (category) params.append('category', category);
+    
+    showChartLoading('softSkillsByCategory');
+    
+    try {
+        // Separate API calls for chart (limit 10) and table (limit 50)
+        const chartParams = new URLSearchParams(params);
+        chartParams.append('limit', '10');
+        
+        const tableParams = new URLSearchParams(params);
+        tableParams.append('limit', '50');
+        
+        const [chartResponse, tableResponse] = await Promise.all([
+            fetch(`/api/getSoftSkillsByCategory?${chartParams}`),
+            fetch(`/api/getSoftSkillsByCategory?${tableParams}`)
+        ]);
+        
+        if (!chartResponse.ok || !tableResponse.ok) throw new Error('Failed to fetch soft skills by category');
+        
+        const chartData = await chartResponse.json();
+        const tableData = await tableResponse.json();
+          // Update chart with top 10
+        if (softSkillsByCategoryChart) {
+            softSkillsByCategoryChart.destroy();
+        }
+        
+        const ctx = document.getElementById('softSkillsByCategoryChart').getContext('2d');
+        
+        // Calculate dynamic sizing
+        const chartHeight = calculateChartHeight(chartData.skills, 400);
+        const fontSize = calculateFontSize(chartData.skills, ctx.canvas.clientWidth);
+        setChartContainerHeight('softSkillsByCategoryChart', chartHeight);
+        
+        softSkillsByCategoryChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: chartData.skills,
+                datasets: [{
+                    label: 'Job Count',
+                    data: chartData.counts,
+                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        bottom: 30,
+                        left: 10,
+                        right: 10
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            maxRotation: 35,
+                            minRotation: 35,
+                            font: {
+                                size: fontSize
+                            }
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            font: {
+                                size: fontSize
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: {
+                            font: {
+                                size: fontSize
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Update table with top 50
+        const tableBody = document.getElementById('softSkillsByCategoryTable');
+        tableBody.innerHTML = tableData.skills.map((skill, index) => `
+            <tr>
+                <td>${skill}</td>
+                <td>${tableData.counts[index].toLocaleString()}</td>
+                <td>${tableData.category || 'All Categories'}</td>
+            </tr>
+        `).join('');
+        
+        hideChartLoading('softSkillsByCategory');
+    } catch (error) {
+        console.error('Error loading soft skills by category:', error);
+        hideChartLoading('softSkillsByCategory');
+    }
+}
+
+// HARD SKILLS TAB FUNCTIONS
+async function loadHardSkillsData() {
+    const params = getDateParams();
+    
+    showChartLoading('hardSkillTrend');
+    showChartLoading('topHardSkills');
+    showChartLoading('hardSkillsByCategory');
+    
+    try {
+        await Promise.all([
+            loadHardSkillTrend(params),
+            loadTopHardSkills(params),
+            loadAllHardSkills(params),
+            loadHardSkillDropdown(params),
+            loadHardSkillsByCategory()
+        ]);
+    } catch (error) {
+        console.error('Error loading hard skills data:', error);
+    }
+}
+
+async function loadHardSkillTrend(params) {
+    try {
+        const skill = document.getElementById('hardSkillSelect')?.value;
+        if (skill) params.append('skill', skill);
+        
+        const response = await fetch(`/api/getHardSkillTrend?${params}`);
+        if (!response.ok) throw new Error('Failed to fetch hard skill trend');
+        
+        const data = await response.json();
+        
+        if (hardSkillTrendChart) {
+            hardSkillTrendChart.destroy();
+        }
+        
+        const ctx = document.getElementById('hardSkillTrendChart').getContext('2d');
+        hardSkillTrendChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.dates,
+                datasets: [{
+                    label: 'Jobs Posted',
+                    data: data.counts,
+                    borderColor: 'rgb(255, 159, 64)',
+                    backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        
+        hideChartLoading('hardSkillTrend');
+    } catch (error) {
+        console.error('Error loading hard skill trend:', error);
+        hideChartLoading('hardSkillTrend');
+    }
+}
+
+async function loadTopHardSkills(params) {
+    try {
+        const response = await fetch(`/api/getTopHardSkills?${params}`);
+        if (!response.ok) throw new Error('Failed to fetch top hard skills');
+        
+        const data = await response.json();
+          if (topHardSkillsChart) {
+            topHardSkillsChart.destroy();
+        }
+        
+        const ctx = document.getElementById('topHardSkillsChart').getContext('2d');
+        
+        // Calculate dynamic sizing
+        const chartHeight = calculateChartHeight(data.skills, 400);
+        const fontSize = calculateFontSize(data.skills, ctx.canvas.clientWidth);
+        setChartContainerHeight('topHardSkillsChart', chartHeight);
+        
+        topHardSkillsChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.skills,
+                datasets: [{
+                    label: 'Job Count',
+                    data: data.counts,
+                    backgroundColor: 'rgba(255, 159, 64, 0.6)',
+                    borderColor: 'rgba(255, 159, 64, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        bottom: 30,
+                        left: 10,
+                        right: 10
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            font: {
+                                size: fontSize
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            maxRotation: 35,
+                            minRotation: 35,
+                            font: {
+                                size: fontSize
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: {
+                            font: {
+                                size: fontSize
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        hideChartLoading('topHardSkills');
+    } catch (error) {
+        console.error('Error loading top hard skills:', error);
+        hideChartLoading('topHardSkills');
+    }
+}
+
+async function loadAllHardSkills(params) {
+    try {
+        const response = await fetch(`/api/getAllHardSkills?${params}`);
+        if (!response.ok) throw new Error('Failed to fetch all hard skills');
+        
+        const data = await response.json();
+        const tableBody = document.getElementById('allHardSkillsTable');
+        
+        tableBody.innerHTML = data.skills.map((skill, index) => `
+            <tr>
+                <td>${skill}</td>
+                <td>${data.counts[index].toLocaleString()}</td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading all hard skills:', error);
+    }
+}
+
+async function loadHardSkillDropdown(params) {
+    try {
+        const response = await fetch(`/api/getAllHardSkills?${params}`);
+        if (!response.ok) throw new Error('Failed to fetch hard skills for dropdown');
+        
+        const data = await response.json();
+        const hardSkillSelect = document.getElementById('hardSkillSelect');
+        
+        hardSkillSelect.innerHTML = '<option value="">All Hard Skills</option>';
+        data.skills.forEach(skill => {
+            const option = document.createElement('option');
+            option.value = skill;
+            option.textContent = skill;
+            hardSkillSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading hard skill dropdown:', error);
+    }
+}
+
+async function loadHardSkillsByCategory() {
+    const params = getDateParams();
+    const category = document.getElementById('hardSkillCategorySelect').value;
+    if (category) params.append('category', category);
+    
+    showChartLoading('hardSkillsByCategory');
+    
+    try {
+        // Separate API calls for chart (limit 10) and table (limit 50)
+        const chartParams = new URLSearchParams(params);
+        chartParams.append('limit', '10');
+        
+        const tableParams = new URLSearchParams(params);
+        tableParams.append('limit', '50');
+        
+        const [chartResponse, tableResponse] = await Promise.all([
+            fetch(`/api/getHardSkillsByCategory?${chartParams}`),
+            fetch(`/api/getHardSkillsByCategory?${tableParams}`)
+        ]);
+        
+        if (!chartResponse.ok || !tableResponse.ok) throw new Error('Failed to fetch hard skills by category');
+        
+        const chartData = await chartResponse.json();
+        const tableData = await tableResponse.json();
+          // Update chart with top 10
+        if (hardSkillsByCategoryChart) {
+            hardSkillsByCategoryChart.destroy();
+        }
+        
+        const ctx = document.getElementById('hardSkillsByCategoryChart').getContext('2d');
+        
+        // Calculate dynamic sizing
+        const chartHeight = calculateChartHeight(chartData.skills, 400);
+        const fontSize = calculateFontSize(chartData.skills, ctx.canvas.clientWidth);
+        setChartContainerHeight('hardSkillsByCategoryChart', chartHeight);
+        
+        hardSkillsByCategoryChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: chartData.skills,
+                datasets: [{
+                    label: 'Job Count',
+                    data: chartData.counts,
+                    backgroundColor: 'rgba(255, 205, 86, 0.6)',
+                    borderColor: 'rgba(255, 205, 86, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        bottom: 30,
+                        left: 10,
+                        right: 10
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            maxRotation: 35,
+                            minRotation: 35,
+                            font: {
+                                size: fontSize
+                            }
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            font: {
+                                size: fontSize
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: {
+                            font: {
+                                size: fontSize
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Update table with top 50
+        const tableBody = document.getElementById('hardSkillsByCategoryTable');
+        tableBody.innerHTML = tableData.skills.map((skill, index) => `
+            <tr>
+                <td>${skill}</td>
+                <td>${tableData.counts[index].toLocaleString()}</td>
+                <td>${tableData.category || 'All Categories'}</td>
+            </tr>
+        `).join('');
+        
+        hideChartLoading('hardSkillsByCategory');    } catch (error) {
+        console.error('Error loading hard skills by category:', error);
+        hideChartLoading('hardSkillsByCategory');
+    }
+}
+
+// CERTIFICATIONS TAB FUNCTIONS
+async function loadCertificationsData() {
+    const params = getDateParams();
+    
+    showChartLoading('certificationTrend');
+    showChartLoading('topCertifications');
+    showChartLoading('certificationsByCategory');
+    
+    try {
+        await Promise.all([
+            loadCertificationTrend(params),
+            loadTopCertifications(params),
+            loadAllCertifications(params),
+            loadCertificationDropdown(params),
+            loadCertificationsByCategory()
+        ]);
+    } catch (error) {
+        console.error('Error loading certifications data:', error);
+    }
+}
+
+async function loadCertificationTrend(params) {
+    try {
+        const skill = document.getElementById('certificationSelect')?.value;
+        if (skill) params.append('skill', skill);
+        
+        const response = await fetch(`/api/getCertificationTrend?${params}`);
+        if (!response.ok) throw new Error('Failed to fetch certification trend');
+        
+        const data = await response.json();
+        
+        if (certificationTrendChart) {
+            certificationTrendChart.destroy();
+        }
+        
+        const ctx = document.getElementById('certificationTrendChart').getContext('2d');
+        certificationTrendChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.dates,
+                datasets: [{
+                    label: 'Job Count',
+                    data: data.counts,
+                    borderColor: 'rgb(255, 159, 64)',
+                    backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        
+        hideChartLoading('certificationTrend');
+    } catch (error) {
+        console.error('Error loading certification trend:', error);
+        hideChartLoading('certificationTrend');
+    }
+}
+
+async function loadTopCertifications(params) {
+    try {
+        const response = await fetch(`/api/getTopCertifications?${params}`);
+        if (!response.ok) throw new Error('Failed to fetch top certifications');
+        
+        const data = await response.json();
+        
+        if (topCertificationsChart) {
+            topCertificationsChart.destroy();
+        }
+        
+        const ctx = document.getElementById('topCertificationsChart').getContext('2d');
+        
+        // Calculate dynamic sizing
+        const chartHeight = calculateChartHeight(data.skills, 400);
+        const fontSize = calculateFontSize(data.skills, ctx.canvas.clientWidth);
+        setChartContainerHeight('topCertificationsChart', chartHeight);
+        
+        topCertificationsChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.skills,
+                datasets: [{
+                    label: 'Job Count',
+                    data: data.counts,
+                    backgroundColor: 'rgba(255, 159, 64, 0.6)',
+                    borderColor: 'rgba(255, 159, 64, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        bottom: 30,
+                        left: 10,
+                        right: 10
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            font: {
+                                size: fontSize
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45,
+                            font: {
+                                size: fontSize
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: {
+                            font: {
+                                size: fontSize
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        hideChartLoading('topCertifications');
+    } catch (error) {
+        console.error('Error loading top certifications:', error);
+        hideChartLoading('topCertifications');
+    }
+}
+
+async function loadAllCertifications(params) {
+    try {
+        const response = await fetch(`/api/getAllCertifications?${params}`);
+        if (!response.ok) throw new Error('Failed to fetch all certifications');
+        
+        const data = await response.json();
+        
+        const tableBody = document.getElementById('allCertificationsTable');
+        tableBody.innerHTML = data.skills.map((skill, index) => `
+            <tr>
+                <td>${skill}</td>
+                <td>${data.counts[index].toLocaleString()}</td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading all certifications:', error);
+    }
+}
+
+async function loadCertificationDropdown(params) {
+    try {
+        const response = await fetch(`/api/getAllCertifications?${params}`);
+        if (!response.ok) throw new Error('Failed to fetch certifications for dropdown');
+        
+        const data = await response.json();
+        
+        const select = document.getElementById('certificationSelect');
+        select.innerHTML = '<option value="">All Certifications</option>';
+        
+        data.skills.forEach(skill => {
+            const option = document.createElement('option');
+            option.value = skill;
+            option.textContent = skill;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading certification dropdown:', error);
+    }
+}
+
+async function loadCertificationsByCategory() {
+    const params = getDateParams();
+    const category = document.getElementById('certificationCategorySelect')?.value;
+    
+    if (category) params.append('category', category);
+    params.append('limit', '10'); // Limit chart to 10 items
+    
+    showChartLoading('certificationsByCategory');
+    
+    try {
+        // Load chart data (top 10)
+        const response = await fetch(`/api/getCertificationsByCategory?${params}`);
+        if (!response.ok) throw new Error('Failed to fetch certifications by category');
+        
+        const data = await response.json();
+        
+        if (certificationsByCategoryChart) {
+            certificationsByCategoryChart.destroy();
+        }
+        
+        const ctx = document.getElementById('certificationsByCategoryChart').getContext('2d');
+        
+        // Calculate dynamic sizing
+        const chartHeight = calculateChartHeight(data.skills, 400);
+        const fontSize = calculateFontSize(data.skills, ctx.canvas.clientWidth);
+        setChartContainerHeight('certificationsByCategoryChart', chartHeight);
+        
+        certificationsByCategoryChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.skills,
+                datasets: [{
+                    label: 'Job Count',
+                    data: data.counts,
+                    backgroundColor: 'rgba(255, 159, 64, 0.6)',
+                    borderColor: 'rgba(255, 159, 64, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        bottom: 30,
+                        left: 10,
+                        right: 10
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            font: {
+                                size: fontSize
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45,
+                            font: {
+                                size: fontSize
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: {
+                            font: {
+                                size: fontSize
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Load table data (top 50)
+        const tableParams = getDateParams();
+        if (category) tableParams.append('category', category);
+        tableParams.append('limit', '50');
+        
+        const tableResponse = await fetch(`/api/getCertificationsByCategory?${tableParams}`);
+        if (!tableResponse.ok) throw new Error('Failed to fetch certifications table data');
+        
+        const tableData = await tableResponse.json();
+        
+        // Update table
+        const tableBody = document.getElementById('certificationsByCategoryTable');
+        tableBody.innerHTML = tableData.skills.map((skill, index) => `
+            <tr>
+                <td>${skill}</td>
+                <td>${tableData.counts[index].toLocaleString()}</td>
+                <td>${tableData.category || 'All Categories'}</td>
+            </tr>
+        `).join('');
+        
+        hideChartLoading('certificationsByCategory');
+    } catch (error) {
+        console.error('Error loading certifications by category:', error);
+        hideChartLoading('certificationsByCategory');
+    }
+}
+</script>
+{% endblock %}

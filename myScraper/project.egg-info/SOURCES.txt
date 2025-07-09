@@ -1,0 +1,15 @@
+setup.py
+myScraper/__init__.py
+myScraper/items.py
+myScraper/middlewares.py
+myScraper/pipelines.py
+myScraper/settings.py
+myScraper/spiders/__init__.py
+myScraper/spiders/jobstreet.py
+myScraper/spiders/jora.py
+myScraper/spiders/ricebowl.py
+project.egg-info/PKG-INFO
+project.egg-info/SOURCES.txt
+project.egg-info/dependency_links.txt
+project.egg-info/entry_points.txt
+project.egg-info/top_level.txt

@@ -1,0 +1,505 @@
+{% extends 'base.html' %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Job Market Dashboard</h2>
+    <p class="text-muted">Malaysia Job Market Insights</p>
+    
+    <form class="row g-2 mb-4" id="dateFilterForm">
+      <div class="col-auto">
+        <label for="startDate" class="form-label">Start Date</label>
+        <input type="date" id="startDate" name="start" class="form-control">
+      </div>
+      <div class="col-auto">
+        <label for="endDate" class="form-label">End Date</label>
+        <input type="date" id="endDate" name="end" class="form-control">
+      </div>
+      <div class="col-auto d-flex align-items-end">
+        <button type="submit" class="btn btn-primary">Apply Filter</button>
+      </div>
+    </form>    <!-- Statistics Cards -->
+    <div class="row mb-4">
+      <div class="col-md-3 mb-3">
+        <div class="card text-center">
+          <div class="card-body">
+            <h5 class="card-title">Total Jobs</h5>
+            <div class="position-relative" style="min-height: 80px;">
+              <p class="card-text display-4" id="totalJobs" style="display: none;"></p>
+              <div class="position-absolute top-50 start-50 translate-middle" id="totalJobsLoading">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 mb-3">
+        <div class="card text-center">
+          <div class="card-body">
+            <h5 class="card-title">Total Companies</h5>
+            <div class="position-relative" style="min-height: 80px;">
+              <p class="card-text display-4" id="totalCompanies" style="display: none;"></p>
+              <div class="position-absolute top-50 start-50 translate-middle" id="totalCompaniesLoading">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 mb-3">
+        <div class="card text-center">
+          <div class="card-body">
+            <h5 class="card-title">Job Types</h5>
+            <div class="position-relative" style="min-height: 80px;">
+              <p class="card-text display-4" id="totalTypes" style="display: none;"></p>
+              <div class="position-absolute top-50 start-50 translate-middle" id="totalTypesLoading">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 mb-3">
+        <div class="card text-center">
+          <div class="card-body">
+            <h5 class="card-title">Total Job Categories</h5>
+            <div class="position-relative" style="min-height: 80px;">
+              <p class="card-text display-4" id="totalCategories" style="display: none;"></p>
+              <div class="position-absolute top-50 start-50 translate-middle" id="totalCategoriesLoading">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- Charts -->
+    <div class="mb-5">
+      <h5>Job Postings Over Time</h5>
+      <div class="card">
+        <div class="card-body position-relative">
+          <canvas id="jobsTrendChart" style="max-height: 400px;"></canvas>
+          <div class="chart-loading position-absolute top-50 start-50 translate-middle d-none" id="jobsTrendLoading">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading chart...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mb-5">
+      <h5>Median Salary Over Time</h5>
+      <div class="card">
+        <div class="card-body position-relative">
+          <canvas id="salaryTrendChart" style="max-height: 400px;"></canvas>
+          <div class="chart-loading position-absolute top-50 start-50 translate-middle d-none" id="salaryTrendLoading">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading chart...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mb-5">
+      <div class="col-lg-6 mb-4">
+        <h5>Top 5 States (by Job Posts)</h5>
+        <div class="card">
+          <div class="card-body position-relative">
+            <canvas id="topStateChart" style="max-height: 350px;"></canvas>
+            <div class="chart-loading position-absolute top-50 start-50 translate-middle d-none" id="topStateLoading">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading chart...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6 mb-4">
+        <h5>Top 5 Job Categories</h5>
+        <div class="card">
+          <div class="card-body position-relative">
+            <canvas id="topCategoryChart" style="max-height: 350px;"></canvas>
+            <div class="chart-loading position-absolute top-50 start-50 translate-middle d-none" id="topCategoryLoading">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading chart...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>    </div>
+</div>
+
+<!-- Toast Container for error messages -->
+<div class="toast-container position-fixed top-0 end-0 p-3"></div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Global variables to store charts
+let jobsTrendChart = null;
+let salaryTrendChart = null;
+let topStateChart = null;
+let topCategoryChart = null;
+
+// Initialize dashboard when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initializeDashboard();
+});
+
+// Form submission handler
+document.getElementById('dateFilterForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    updateDashboard();
+});
+
+async function initializeDashboard() {
+    try {
+        // Load default date range
+        await loadDefaultDateRange();
+        
+        // Load initial data
+        await updateDashboard();
+    } catch (error) {
+        console.error('Error initializing dashboard:', error);
+        showError('Failed to initialize dashboard');
+    }
+}
+
+async function loadDefaultDateRange() {
+    try {
+        const response = await fetch('/api/getDefaultDateRange');
+        if (!response.ok) {
+            throw new Error('Failed to fetch default date range');
+        }
+        
+        const dateRange = await response.json();
+        const startDateEl = document.getElementById('startDate');
+        const endDateEl = document.getElementById('endDate');
+        
+        if (dateRange.startDate && dateRange.endDate) {
+            startDateEl.min = dateRange.startDate;
+            startDateEl.max = dateRange.endDate;
+            startDateEl.value = dateRange.startDate;
+            
+            endDateEl.min = dateRange.startDate;
+            endDateEl.max = dateRange.endDate;
+            endDateEl.value = dateRange.endDate;
+        }
+    } catch (error) {
+        console.error('Error loading default date range:', error);
+    }
+}
+
+async function updateDashboard() {
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+    
+    // Build query parameters
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    
+    try {
+        // Load all dashboard data in parallel
+        await Promise.all([
+            loadDashboardStats(params),
+            loadJobsTrend(params),
+            loadSalaryTrend(params),
+            loadTopStates(params),
+            loadTopCategories(params)
+        ]);
+    } catch (error) {
+        console.error('Error updating dashboard:', error);
+        showError('Failed to update dashboard');
+    }
+}
+
+async function loadDashboardStats(params) {
+    try {
+        const response = await fetch(`/api/getDashboardStats?${params}`);
+        if (!response.ok) throw new Error('Failed to fetch dashboard stats');
+        
+        const stats = await response.json();
+        
+        // Show data and hide loading spinners
+        document.getElementById('totalJobs').textContent = stats.totalJobs.toLocaleString();
+        document.getElementById('totalJobs').style.display = 'block';
+        document.getElementById('totalJobsLoading').style.display = 'none';
+        
+        document.getElementById('totalCompanies').textContent = stats.totalCompanies.toLocaleString();
+        document.getElementById('totalCompanies').style.display = 'block';
+        document.getElementById('totalCompaniesLoading').style.display = 'none';
+        
+        document.getElementById('totalTypes').textContent = stats.totalTypes.toLocaleString() + "/7";
+        document.getElementById('totalTypes').style.display = 'block';
+        document.getElementById('totalTypesLoading').style.display = 'none';
+        
+        document.getElementById('totalCategories').textContent = stats.totalCategories.toLocaleString() + "/26";
+        document.getElementById('totalCategories').style.display = 'block';
+        document.getElementById('totalCategoriesLoading').style.display = 'none';
+    } catch (error) {
+        console.error('Error loading dashboard stats:', error);
+        // Show error placeholder and hide loading spinners
+        document.getElementById('totalJobs').innerHTML = '<span class="text-muted">--</span>';
+        document.getElementById('totalJobs').style.display = 'block';
+        document.getElementById('totalJobsLoading').style.display = 'none';
+        
+        document.getElementById('totalCompanies').innerHTML = '<span class="text-muted">--</span>';
+        document.getElementById('totalCompanies').style.display = 'block';
+        document.getElementById('totalCompaniesLoading').style.display = 'none';
+        
+        document.getElementById('totalTypes').innerHTML = '<span class="text-muted">--</span>';
+        document.getElementById('totalTypes').style.display = 'block';
+        document.getElementById('totalTypesLoading').style.display = 'none';
+        
+        document.getElementById('totalCategories').innerHTML = '<span class="text-muted">--</span>';
+        document.getElementById('totalCategories').style.display = 'block';
+        document.getElementById('totalCategoriesLoading').style.display = 'none';
+    }
+}
+
+async function loadJobsTrend(params) {
+    const loadingEl = document.getElementById('jobsTrendLoading');
+    try {
+        // Show loading spinner
+        loadingEl?.classList.remove('d-none');
+        
+        const response = await fetch(`/api/getJobsTrend?${params}`);
+        if (!response.ok) throw new Error('Failed to fetch jobs trend');
+        
+        const data = await response.json();
+        
+        // Destroy existing chart if it exists
+        if (jobsTrendChart) {
+            jobsTrendChart.destroy();
+        }
+        
+        const ctx = document.getElementById('jobsTrendChart').getContext('2d');
+        jobsTrendChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.dates,
+                datasets: [{
+                    label: 'Job Postings',
+                    data: data.counts,
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error loading jobs trend:', error);
+        showError('Failed to load jobs trend chart');
+    } finally {
+        // Hide loading spinner
+        loadingEl?.classList.add('d-none');
+    }
+}
+
+async function loadSalaryTrend(params) {
+    const loadingEl = document.getElementById('salaryTrendLoading');
+    try {
+        // Show loading spinner
+        loadingEl?.classList.remove('d-none');
+        
+        const response = await fetch(`/api/getSalaryTrend?${params}`);
+        if (!response.ok) throw new Error('Failed to fetch salary trend');
+        
+        const data = await response.json();
+        
+        // Destroy existing chart if it exists
+        if (salaryTrendChart) {
+            salaryTrendChart.destroy();
+        }
+        
+        const ctx = document.getElementById('salaryTrendChart').getContext('2d');
+        salaryTrendChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.dates,
+                datasets: [{
+                    label: 'Median Salary (RM)',
+                    data: data.salaries,
+                    borderColor: 'rgb(255, 99, 132)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return 'RM ' + value.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error loading salary trend:', error);
+        showError('Failed to load salary trend chart');
+    } finally {
+        // Hide loading spinner
+        loadingEl?.classList.add('d-none');
+    }
+}
+
+async function loadTopStates(params) {
+    const loadingEl = document.getElementById('topStateLoading');
+    try {
+        // Show loading spinner
+        loadingEl?.classList.remove('d-none');
+        
+        const response = await fetch(`/api/getTopStates?${params}`);
+        if (!response.ok) throw new Error('Failed to fetch top states');
+        
+        const data = await response.json();
+        
+        // Destroy existing chart if it exists
+        if (topStateChart) {
+            topStateChart.destroy();
+        }
+        
+        const ctx = document.getElementById('topStateChart').getContext('2d');
+        topStateChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.states,
+                datasets: [{
+                    label: 'Job Count',
+                    data: data.counts,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.6)',
+                        'rgba(54, 162, 235, 0.6)',
+                        'rgba(255, 205, 86, 0.6)',
+                        'rgba(75, 192, 192, 0.6)',
+                        'rgba(153, 102, 255, 0.6)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error loading top states:', error);
+        showError('Failed to load top states chart');
+    } finally {
+        // Hide loading spinner
+        loadingEl?.classList.add('d-none');
+    }
+}
+
+async function loadTopCategories(params) {
+    const loadingEl = document.getElementById('topCategoryLoading');
+    try {
+        // Show loading spinner
+        loadingEl?.classList.remove('d-none');
+        
+        const response = await fetch(`/api/getTopCategories?${params}`);
+        if (!response.ok) throw new Error('Failed to fetch top categories');
+        
+        const data = await response.json();
+        
+        // Destroy existing chart if it exists
+        if (topCategoryChart) {
+            topCategoryChart.destroy();
+        }
+        
+        const ctx = document.getElementById('topCategoryChart').getContext('2d');
+        topCategoryChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: data.categories,
+                datasets: [{
+                    data: data.counts,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.6)',
+                        'rgba(54, 162, 235, 0.6)',
+                        'rgba(255, 205, 86, 0.6)',
+                        'rgba(75, 192, 192, 0.6)',
+                        'rgba(153, 102, 255, 0.6)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+    } catch (error) {
+        console.error('Error loading top categories:', error);
+        showError('Failed to load top categories chart');
+    } finally {
+        // Hide loading spinner
+        loadingEl?.classList.add('d-none');
+    }
+}
+
+function showError(message) {
+    // Create Bootstrap toast for better error display
+    const toastHtml = `
+        <div class="toast align-items-center text-white bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    `;
+    
+    // Add to toast container
+    const toastContainer = document.querySelector('.toast-container');
+    if (toastContainer) {
+        toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+        const toastElement = toastContainer.lastElementChild;
+        const toast = new bootstrap.Toast(toastElement, {
+            autohide: true,
+            delay: 5000
+        });
+        toast.show();
+        
+        // Remove element after it's hidden
+        toastElement.addEventListener('hidden.bs.toast', () => {
+            toastElement.remove();
+        });
+    } else {
+        // Fallback to console and alert if no toast container
+        console.error(message);
+        alert(message);
+    }
+}
+</script>
+{% endblock %}
