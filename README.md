@@ -2,23 +2,22 @@
 
 A comprehensive job market analysis system that scrapes job postings from major Malaysian job portals (JobStreet and RiceBowl), processes the data, and provides analytical insights through a web dashboard.
 
-## 📋 Project Overview
+## Project Overview
 
 This Final Year Project consists of three main components:
-- **Web Scraper**: Automated data collection from job portals using Scrapy
+- **Web Scraper**: Data collection from job portals using Scrapy
 - **Data Processing Pipeline**: Cleaning, normalization, and database insertion
 - **Web Dashboard**: Flask-based analytics interface for job market insights
 
-## 🎯 Features
+## Features
 
-- **Automated Job Scraping**: Collect job postings from JobStreet and RiceBowl
+- **Job Scraping**: Collect job postings from JobStreet and RiceBowl
 - **Data Cleaning & Processing**: Standardize job categories, skills, locations, and types
-- **Database Storage**: PostgreSQL database with optimized schema
 - **Analytics Dashboard**: Interactive web interface for data visualization
 - **Job Market Insights**: Analysis by location, categories, skills, and job types
 - **Date Range Filtering**: Historical job market trend analysis
 
-## 🛠️ Prerequisites
+## Prerequisites
 
 Before running this project, ensure you have the following installed:
 
@@ -32,21 +31,78 @@ Before running this project, ensure you have the following installed:
 - 4GB+ RAM recommended
 - 2GB+ free disk space
 
-## 📦 Installation
+## Installation and Setup
 
-### 1. Clone the Repository
-```bash
-git clone <repository-url>
-cd FinalYearProject
-```
-
-### 2. Database Setup
-1. Install and start PostgreSQL server
-2. Create a database named `FYP`:
+### Step 1: PostgreSQL Database Setup
+1. Install PostgreSQL server
+2. Start PostgreSQL service
+3. Create database:
 ```sql
 CREATE DATABASE FYP;
 ```
-3. Update database credentials in `.env` file (create if doesn't exist):
+
+### Step 2: Web Scraper
+```bash
+cd myScraper
+pip install -r requirements.txt
+```
+
+Run spiders:
+```bash
+scrapy crawl jobstreet
+scrapy crawl ricebowl
+```
+
+### Step 3: Data Processing
+```bash
+cd data
+pip install -r requirements.txt
+```
+
+#### Initialize Database
+Navigate to db/init directory:
+```bash
+cd data/db/init
+python .\init_db.py
+python .\job_categories.py
+python .\job_types.py
+```
+
+#### Clean and Extract Skills
+Navigate to cleaner directory:
+```bash
+cd data/cleaner
+```
+**Important**: Check file path in script:
+```python
+rb = pd.read_json(f'./data/rb/raw/{filename}',lines=True)
+```
+Run cleaner:
+```bash
+python .\rb_cleaner.py
+```
+
+#### Insert Cleaned Data
+Navigate to db/insert directory:
+```bash
+cd data/db/insert
+```
+**Important**: Check file path in script:
+```python
+rb_filepath = 'rb/cleaned/cleaned_items_ricebowl_28.jl'
+```
+Run insert:
+```bash
+python .\insert.py
+```
+
+### Step 4: Web Dashboard
+```bash
+cd web
+pip install -r requirements.txt
+```
+
+Set up environment file (.env):
 ```env
 DB_USER=postgres
 DB_PASSWORD=your_password
@@ -56,66 +112,13 @@ DB_NAME=FYP
 SECRET_KEY=your_secret_key_here
 ```
 
-### 3. Initialize Database Schema
+Run web application:
 ```bash
-cd data/db/init
-python init_db.py
-```
-
-### 4. Install Dependencies
-
-#### For Web Scraper:
-```bash
-cd myScraper
-pip install -r requirements.txt
-```
-
-#### For Data Processing:
-```bash
-cd data
-pip install -r requirements.txt
-```
-
-#### For Web Dashboard:
-```bash
-cd web
-pip install -r requirements.txt
-```
-
-## 🚀 Usage
-
-### 1. Data Collection (Web Scraping)
-```bash
-cd myScraper
-# Scrape JobStreet
-scrapy crawl jobstreet
-# Scrape RiceBowl
-scrapy crawl ricebowl
-```
-
-### 2. Data Processing
-```bash
-cd data/cleaner
-# Clean JobStreet data
-python js_cleaner.py
-# Clean RiceBowl data
-python rb_cleaner.py
-```
-
-### 3. Database Insertion
-```bash
-cd data/db/insert
-python insert.py
-```
-
-### 4. Run Web Dashboard
-```bash
-cd web
-python run.py
+python .\run.py
 ```
 Access the dashboard at `http://localhost:5000`
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 FinalYearProject/
@@ -140,7 +143,7 @@ FinalYearProject/
 └── README.md
 ```
 
-## 🔧 Configuration
+## Configuration
 
 ### Scraping Configuration
 - API keys and proxy settings in `myScraper/myScraper/settings.py`
@@ -154,12 +157,12 @@ FinalYearProject/
 - Flask settings in `web/app.py`
 - Environment variables in `.env` file
 
-## 📊 Data Sources
+## Data Sources
 
-- **JobStreet Malaysia**: Job postings from major Malaysian job portal
-- **RiceBowl**: Technology-focused job postings
+- **JobStreet Malaysia**
+- **RiceBowl**
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/new-feature`)
@@ -167,15 +170,15 @@ FinalYearProject/
 4. Push to the branch (`git push origin feature/new-feature`)
 5. Create a Pull Request
 
-## 📝 License
+## License
 
 This project is developed as part of a Final Year Project for academic purposes.
 
-## ⚠️ Disclaimer
+## Disclaimer
 
 This tool is designed for educational and research purposes. Please ensure compliance with the terms of service of the websites being scraped and respect robots.txt files.
 
-## 🆘 Troubleshooting
+## Troubleshooting
 
 ### Common Issues:
 1. **Database Connection Error**: Verify PostgreSQL is running and credentials are correct
