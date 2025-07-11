@@ -66,6 +66,7 @@ cd data/db/init
 python .\init_db.py
 python .\job_categories.py
 python .\job_types.py
+python .\skills.py
 ```
 
 #### Clean and Extract Skills
