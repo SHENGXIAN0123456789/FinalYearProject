@@ -49,8 +49,8 @@ pip install -r requirements.txt
 
 Run spiders:
 ```bash
-scrapy crawl jobstreet
-scrapy crawl ricebowl
+scrapy crawl jobstreet -o jobstreet_data.jsonl
+scrapy crawl ricebowl -o ricebowl_data.jsonl
 ```
 
 ### Step 3: Data Processing
